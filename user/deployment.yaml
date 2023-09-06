@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-deployment
+  labels:
+    app: user
+spec:
+  selector:
+    matchLabels:
+      app: user
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: user
+    spec:
+      containers:
+      - name: user-cnt
+        image: 
+        env:
+          - name: DB_WRITE_HOST
+            value:
+          - name: DB_READ_HOST
+            value:
+          - name: DB_NAME
+            value:
+          - name: DB_USER
+            value:
+          - name: DB_PASSWORD
+            value:
+          - name: DB_PORT
+            value: '5432'
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 200m
+            memory: 64Mi
