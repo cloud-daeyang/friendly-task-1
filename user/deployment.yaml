@@ -19,15 +19,15 @@ spec:
         image: 
         env:
           - name: DB_WRITE_HOST
-            value:
+            value: 
           - name: DB_READ_HOST
-            value:
+            value: 
           - name: DB_NAME
-            value:
+            value: 
           - name: DB_USER
-            value:
+            value: 
           - name: DB_PASSWORD
-            value:
+            value: 
           - name: DB_PORT
             value: '5432'
         ports:

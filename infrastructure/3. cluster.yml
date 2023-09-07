@@ -1,0 +1,69 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: wsi-cluster
+  region: ap-northeast-2
+  version: "1.27"
+  tags:
+    karpenter.sh/discovery: wsi-cluster
+
+vpc:
+  subnets:
+    private:
+      ap-northeast-2a:
+        id: 
+      ap-northeast-2b:
+        id: 
+      ap-northeast-2c:
+        id: 
+
+privateCluster:
+  enabled: true
+  additionalEndpointServices:
+    - autoscaling
+    - cloudformation
+    - logs
+
+iam:
+  withOIDC: true
+  serviceAccounts:
+  - metadata:
+      name: karpenter
+      namespace: karpenter
+    roleName: wsi-cluster-karpenter
+    attachPolicyARNs:
+      - arn:aws:iam::635867519280:policy/KarpenterControllerPolicy-wsi-cluster
+
+iamIdentityMappings:
+- arn: "arn:aws:iam::790946953677:role/KarpenterNodeRole-skills-cluster"
+  username: system:node:{{EC2PrivateDNSName}}
+  groups:
+  - system:bootstrappers
+  - system:nodes
+
+managedNodeGroups:
+  - instanceType: m5.large
+    amiFamily: AmazonLinux2
+    name: skills-cluster-ng
+    desiredCapacity: 3
+    minSize: 3
+    maxSize: 16
+    privateNetworking: true
+    iam:
+      withAddonPolicies:
+        imageBuilder: true
+        autoScaler: true
+        externalDNS: true
+        certManager: true
+        appMesh: true
+        appMeshPreview: true
+        ebs: true
+        fsx: true
+        efs: true
+        awsLoadBalancerController: true
+        xRay: true
+        cloudWatch: true
+
+cloudWatch:
+  clusterLogging:
+    enableTypes: ["*"]
