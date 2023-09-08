@@ -1,15 +1,12 @@
 #!/bin/bash
-export KARPENTER_VERSION=v0.26.1
-export CLUSTER_NAME="lion-cluster" # change me
+export KARPENTER_VERSION=v0.30.0
+export CLUSTER_NAME="wsi-cluster"
 export CLUSTER_ENDPOINT="$(aws eks describe-cluster --name ${CLUSTER_NAME} --query "cluster.endpoint" --output text)"
 export AWS_DEFAULT_REGION="ap-northeast-2"
 export AWS_ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
-
-## 노드가 생성될 Subnet에 아래와 같이 Tagging한 후 진행
-## karpenter.sh/discovery = ${CLUSTER_NAME}
 TEMPOUT=$(mktemp)
 
-curl -fsSL https://karpenter.sh/"${KARPENTER_VERSION}"/getting-started/getting-started-with-eksctl/cloudformation.yaml  > $TEMPOUT \
+curl -fsSL https://raw.githubusercontent.com/aws/karpenter/"${KARPENTER_VERSION}"/website/content/en/preview/getting-started/getting-started-with-karpenter/cloudformation.yaml  > $TEMPOUT \
 && aws cloudformation deploy \
   --stack-name "Karpenter-${CLUSTER_NAME}" \
   --template-file "${TEMPOUT}" \
@@ -30,9 +27,7 @@ eksctl create iamidentitymapping \
   --role-only \
   --approve
 
-
-## Spot Instance 처음 쓰는 계정이면 아래 명령어 주석 해제 후 진행
-## aws iam create-service-linked-role --aws-service-name spot.amazonaws.com || true
+aws iam create-service-linked-role --aws-service-name spot.amazonaws.com || true
 
 helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter --version ${KARPENTER_VERSION} --namespace karpenter --create-namespace \
   --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=${KARPENTER_IAM_ROLE_ARN} \
