@@ -1,7 +1,4 @@
-Description:  This template deploys a VPC, with a pair of public and private subnets spread
-  across two Availability Zones. It deploys an internet gateway, with a default
-  route on the public subnets. It deploys a pair of NAT gateways (one in each AZ),
-  and default routes for them in the private subnets.
+Description: Day6 VPC
 
 Parameters:
   EnvironmentName:
@@ -350,91 +347,70 @@ Resources:
       RouteTableId: !Ref ProtectedRouteTable
       SubnetId: !Ref ProtectedSubnet3
 
-  SecurityGroup:
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /vpc/flowlogs
+      RetentionInDays: 30 
+
+  VPCFlowLog:
+    Type: AWS::EC2::FlowLog
+    Properties:
+      ResourceId: !Ref VPC
+      ResourceType: VPC
+      TrafficType: ALL
+      LogDestinationType: cloud-watch-logs
+      LogGroupName: /vpc/flowlogs
+      DeliverLogsPermissionArn: arn:aws:iam::635867519280:role/AWSVPCFlowlogsRole
+
+  EC2SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: EC2 Security Group
+      VpcId: !Ref VPC
       SecurityGroupIngress:
         - CidrIp: 0.0.0.0/0
           IpProtocol: tcp
           FromPort: 2220
           ToPort: 2220
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443  
 
-  EC2Instance:
-    Type: AWS::EC2::Instance
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
     Properties:
-      InstanceType: c5.large
-      SecurityGroups:
-        - !Ref SecurityGroup
-      ImageId: ami-04a7c24c015ef1e4c
-      SubnetId: !Ref PublicSubnet1
-      UserData:
-        Fn::Base64: !Sub |
-          #!/bin/bash
-          yum install curl jq -y
-          sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/g" /etc/ssh/sshd_config
-          echo "Port 2220" >> /etc/ssh/sshd_config
-          systemctl restart sshd
-          echo "ec2-user:Skills2024**" | chpasswd
-      IamInstanceProfile: "arn:aws:iam::635867519280:role/Admin"
-          
-Outputs:
-  VPC:
-    Description: A reference to the created VPC
-    Value: !Ref VPC
-
-  PublicSubnets:
-    Description: A list of the public subnets
-    Value: !Join [ ",", [ !Ref PublicSubnet1, !Ref PublicSubnet2, !Ref PublicSubnet3 ]]
-
-  PrivateSubnets:
-    Description: A list of the private subnets
-    Value: !Join [ ",", [ !Ref PrivateSubnet1, !Ref PrivateSubnet2, !Ref PrivateSubnet3 ]]
-
-  ProtectedSubnets:
-    Description: A list of the protected subnets
-    Value: !Join [ ",", [ !Ref ProtectedSubnet1, !Ref ProtectedSubnet2, !Ref ProtectedSubnet3 ]]
-
-  PublicSubnet1:
-    Description: A reference to the public subnet in the 1st Availability Zone
-    Value: !Ref PublicSubnet1
-
-  PublicSubnet2:
-    Description: A reference to the public subnet in the 2nd Availability Zone
-    Value: !Ref PublicSubnet2
-
-  PublicSubnet3:
-    Description: A reference to the public subnet in the 3rd Availability Zone
-    Value: !Ref PublicSubnet3
-    
-  PrivateSubnet1:
-    Description: A reference to the private subnet in the 1st Availability Zone
-    Value: !Ref PrivateSubnet1
-
-  PrivateSubnet2:
-    Description: A reference to the private subnet in the 2nd Availability Zone
-    Value: !Ref PrivateSubnet2
-
-  PrivateSubnet3:
-    Description: A reference to the private subnet in the 3rd Availability Zone
-    Value: !Ref PrivateSubnet3
-
-  ProtectedSubnet1:
-    Description: A reference to the protected subnet in the 1st Availability Zone
-    Value: !Ref ProtectedSubnet1
+      GroupDescription: RDS Security Group
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443  
   
-  ProtectedSubnet2:
-    Description: A reference to the protected subnet in the 2nd Availability Zone
-    Value: !Ref ProtectedSubnet2
-
-  ProtectedSubnet3:
-    Description: A reference to the protected subnet in the 3rd Availability Zone
-    Value: !Ref ProtectedSubnet3
-
-  InstanceId:
-    Description: The EC2 instance ID
-    Value: !Ref EC2Instance
-
-  PublicIP:
-    Description: The public IP address of the EC2 instance
-    Value: !GetAtt EC2Instance.PublicIp  
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: DB Subnet Group
+      SubnetIds:
+        - !Ref ProtectedSubnet1
+        - !Ref ProtectedSubnet2
+        - !Ref ProtectedSubnet3
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-db-subnet-group
