@@ -18,11 +18,11 @@ vpc:
   subnets:
     private:
       ap-northeast-2a:
-          id: subnet-05461b48f29332ea8
+          id: 
       ap-northeast-2b:
-          id: subnet-053794af972d5b82b
+          id: 
       ap-northeast-2c:
-          id: subnet-06da082d43a10dc2b
+          id: 
 
 iam:
   withOIDC: true

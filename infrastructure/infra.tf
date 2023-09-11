@@ -319,37 +319,11 @@ resource "aws_security_group" "bastion" {
   }
 }
 
-resource "aws_iam_role" "bastion" {
-  name = "wsi-admin-role"
-  
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Sid = ""
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        }
-      }
-    ]
-  })
-
-  managed_policy_arns = ["arn:aws:iam::aws:policy/AdministratorAccess"]
-}
-
-resource "aws_iam_instance_profile" "bastion" {
-  name = "wsi-profile-bastion"
-  role = aws_iam_role.bastion.name
-}
-
 resource "aws_instance" "bastion" {
   instance_type = "c5.large"
   subnet_id = aws_subnet.public_a.id
   associate_public_ip_address = true
   vpc_security_group_ids = [aws_security_group.bastion.id]
-  iam_instance_profile = aws_iam_instance_profile.bastion.name
   
   ami = "ami-094efa69961183fa4"
 
@@ -359,7 +333,7 @@ resource "aws_instance" "bastion" {
 
   user_data = <<-EOF
     #!/bin/bash
-    yum install -y jq curl docker git
+    yum install -y jq docker git
     usermod -aG docker ec2-user
     systemctl enable --now docker
     sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/g" /etc/ssh/sshd_config
@@ -376,57 +350,9 @@ resource "aws_instance" "bastion" {
     curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
     chmod 700 get_helm.sh
     ./get_helm.sh
+    useradd -m read01
+    useradd -m admin01
+    echo "read01:Skills2024**" | chpasswd
+    echo "admin01:Skills2024**" | chpasswd
   EOF
 }
-
-resource "aws_security_group" "db" {
-  name        = "wsi-db-sg"
-  description = "Allow database traffic"
-  vpc_id      = aws_vpc.main.id
-
-  ingress {
-    description      = "TLS from VPC"
-    from_port        = 5432
-    to_port          = 5432
-    protocol         = "tcp"
-    cidr_blocks      = [aws_vpc.main.cidr_block]
-  }
-
-  egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-}
-
-resource "aws_db_subnet_group" "db" {
-  name = "wsi-db-sg"
-  subnet_ids = [
-    aws_subnet.protected_a.id,
-    aws_subnet.protected_b.id,
-    aws_subnet.protected_c.id
-  ]
-}
-
-resource "aws_rds_cluster" "db" {
-  cluster_identifier          = "wsi-db"
-  database_name               = "skills"
-  availability_zones          = ["ap-northeast-2a", "ap-northeast-2b", "ap-northeast-2c"]
-  db_subnet_group_name        = aws_db_subnet_group.db.name
-  master_username             = "skills"
-  master_password             = "Skills2024**"
-  vpc_security_group_ids      = [aws_security_group.db.id]
-  skip_final_snapshot         = true
-  engine                      = "aurora-postgresql"
-  engine_version              = "14.6"
-}
-
-resource "aws_rds_cluster_instance" "db" {
-  cluster_identifier = aws_rds_cluster.db.id
-  instance_class    = "db.t3.medium"
-  identifier        = "wsi-db-instance"
-  engine            = "aurora-postgresql"
-}
-
