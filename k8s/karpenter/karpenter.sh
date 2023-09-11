@@ -1,10 +1,12 @@
 #!/bin/bash
 export KARPENTER_VERSION=v0.30.0
+export AWS_PARTITION="aws"
 export CLUSTER_NAME="wsi-cluster"
-export CLUSTER_ENDPOINT="$(aws eks describe-cluster --name ${CLUSTER_NAME} --query "cluster.endpoint" --output text)"
 export AWS_DEFAULT_REGION="ap-northeast-2"
 export AWS_ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
-TEMPOUT=$(mktemp)
+export TEMPOUT=$(mktemp)
+export CLUSTER_ENDPOINT="$(aws eks describe-cluster --name ${CLUSTER_NAME} --query "cluster.endpoint" --output text)"
+export KARPENTER_IAM_ROLE_ARN="arn:${AWS_PARTITION}:iam::${AWS_ACCOUNT_ID}:role/${CLUSTER_NAME}-karpenter"
 
 curl -fsSL https://raw.githubusercontent.com/aws/karpenter/"${KARPENTER_VERSION}"/website/content/en/preview/getting-started/getting-started-with-karpenter/cloudformation.yaml  > $TEMPOUT \
 && aws cloudformation deploy \

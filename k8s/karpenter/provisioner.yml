@@ -9,7 +9,7 @@ spec:
       values: ["on-demand"]
     - key: "node.kubernetes.io/instance-type"
       operator: In
-      values: ["c5.large", "t3.medium"]
+      values: ["c", "t", "m"]
     - key: "topology.kubernetes.io/zone"
       operator: In
       values: ["ap-northeast-2a", "ap-northeast-2b", "ap-northeast-2c"]
@@ -18,7 +18,7 @@ spec:
       cpu: 1000
   providerRef:
     name: default
-  consolidation: 
+  consolidation:
     enabled: true
 ---
 apiVersion: karpenter.k8s.aws/v1alpha1

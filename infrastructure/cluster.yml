@@ -1,0 +1,51 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: wsi-cluster
+  region: ap-northeast-2
+  version: "1.27"
+  tags:
+    karpenter.sh/discovery: wsi-cluster
+
+privateCluster:
+  enabled: true
+  additionalEndpointServices:
+    - autoscaling
+    - cloudformation
+    - logs
+
+vpc:
+  subnets:
+    private:
+      ap-northeast-2a:
+          id: subnet-05461b48f29332ea8
+      ap-northeast-2b:
+          id: subnet-053794af972d5b82b
+      ap-northeast-2c:
+          id: subnet-06da082d43a10dc2b
+
+iam:
+  withOIDC: true
+
+managedNodeGroups:
+  - name: wsi-ng
+    instanceName: wsi-node
+    instanceType: c5.large
+    privateNetworking: true
+    desiredCapacity: 2
+    minSize: 2
+    maxSize: 20
+    tags:
+      karpenter.sh/discovery: wsi-cluster
+    iam:
+      withAddonPolicies:
+        imageBuilder: true
+        autoScaler: true
+        externalDNS: true
+        certManager: true
+        awsLoadBalancerController: true
+        cloudWatch: true
+
+cloudWatch:
+  clusterLogging:
+    enableTypes: ["*"]
