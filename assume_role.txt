@@ -1,0 +1,38 @@
+https://www.youtube.com/watch?v=-uogKFE1r60
+https://ssup2.github.io/record/AWS_IAM_Assume_Role/
+assume-role-policy.json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "sts:AssumeRole"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+assume-role-trust-relationship.json
+{
+	"Version": "2012-10-17",
+	"Statement": [{
+		"Effect": "Allow",
+		"Action": "sts:AssumeRole",
+		"Principal": {
+			"AWS": "635867519280"
+		},
+		"Condition": {}
+	}]
+}
+
+aws iam create-policy --policy-name assume-role-policy --policy-document file://assume-role-policy.json
+aws iam create-user --user-name bastion
+aws iam create-access-key --user-name bastion
+aws iam attach-user-policy --user-name bastion --policy-arn arn:aws:iam::635867519280:policy/assume-role-policy
+aws iam create-role --role-name assume-role-role --assume-role-policy-document file://assume-role-trust-relationship.json
+aws iam attach-role-policy --role-name assume-role-role --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
+aws sts assume-role --role-arn arn:aws:iam::635867519280:role/assume-role-role --role-session-name assume-role-session
+export AWS_ACCESS_KEY_ID=ASIAZIDFILEYG4ALZQP6
+export AWS_SECRET_ACCESS_KEY=XuPis+WuGk19FTwQgTdhq98NfF/x/6JgKd7wfAfQ
+export AWS_SESSION_TOKEN=IQoJb3JpZ2luX2VjEBMaDmFwLW5vcnRoZWFzdC0yIkcwRQIgV4i6GQwFAfij2NenIF9GzOB8ChitdVmFiztyEvv9Tr8CIQDUzP43TJErUGqEDXv9Sj2XIYiBQ3KHgTJoQ27xskZ99iqpAgjs//////////8BEAAaDDYzNTg2NzUxOTI4MCIMrJe7qSrnt80UKeugKv0Btmfx0pvxVqWKCDbw7vsgJviaky5u+sXFJCEyrE851r9B9NrYaqO5wpaPj1YMdUw6vpqMNwq5GCYgyKkJ+tcaGGZNPgkDdrKsQ4HiduCdU1zus4KVlSrRaQDgqqvjmvVMSE2FzeoiuYa+H94LtI2hh2jfC/kGu2/4lbB0lNd947iTiqlR5rTfAacIe8wRpIFLJKaXtIA+dVAZnBAFVdtTVCNEaqwp+ifzB7iJ+qzxWHITHY73KkRIp6rvyuV851bYdbd1bEHFHgRP+Nv91o+SQa9h8jhmyLfqUmGyMGBAqtjPLPdyuPBRykiQxoujbwbg8I5+h1dD3yEuQEcjaTDy6PunBjqdAYlrYyPLzUdZFmHO6CvJvcNRPS5g7hkVWfBztnFtOylFT3gkKyCqKQXW+FE9Rpuu+jJVahiqL3n1Jj0YyQggqHTM3oFdnsiahAtvCepkODZ5diUUkSqb7kFdubnKJyDJ4PSou1Br+n9i/b6x5Q/SFFgq5Pnmw3s06kzDGfp2X5b4dF7imonMjGW9sNWfz+U/rm1OfESGj3av5tiSMls=RoleSessionToken
