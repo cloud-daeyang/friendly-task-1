@@ -1,19 +1,15 @@
 #!/bin/bash
-aws iam create-user --user-name bastion
+aws iam create-policy --policy-name admin-role-policy --policy-document file://admin-role-policy.json
+aws iam create-policy --policy-name read-role-policy --policy-document file://read-role-policy.json
 
-aws iam create-policy --policy-name assume-role-policy --policy-document file://assume-role-policy.json
+aws iam create-role --role-name admin-role --assume-role-policy-document file://admin-role-trust-relationship.json
+aws iam create-role --role-name read-role --assume-role-policy-document file://read-role-trust-relationship.json
 
-aws iam attach-user-policy --user-name bastion --policy-arn arn:aws:iam::635867519280:policy/assume-role-policy
+aws iam attach-role-policy --role-name admin-role --policy-arn arn:aws:iam::635867519280:policy/admin-role-policy
+aws iam attach-role-policy --role-name read-role --policy-arn arn:aws:iam::635867519280:policy/read-role-policy
 
-aws iam create-access-key --user-name bastion
-
-aws iam create-role --role-name assume-role-role --assume-role-policy-document file://assume-role-trust-relationship.json
-
-aws iam create-policy --policy-name aws-eks-admin-policy --policy-document file://aws-eks-admin-policy.json
-
-aws iam attach-role-policy --role-name assume-role-role --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
-
-aws sts assume-role --role-arn arn:aws:iam::635867519280:role/assume-role-role --role-session-name assume-role-session
+aws sts assume-role --role-arn arn:aws:iam::635867519280:role/admin-role --role-session-name admin-role-session
+aws sts assume-role --role-arn arn:aws:iam::635867519280:role/read-role --role-session-name read-role-session
 
 export AWS_ACCESS_KEY_ID=
 export AWS_SECRET_ACCESS_KEY=
