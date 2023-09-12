@@ -319,11 +319,37 @@ resource "aws_security_group" "bastion" {
   }
 }
 
+resource "aws_iam_role" "bastion" {
+  name = "skills-role-bastion"
+  
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid = ""
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  managed_policy_arns = ["arn:aws:iam::aws:policy/AdministratorAccess"]
+}
+
+resource "aws_iam_instance_profile" "bastion" {
+  name = "skills-profile-bastion"
+  role = aws_iam_role.bastion.name
+}
+
 resource "aws_instance" "bastion" {
   instance_type = "c5.large"
   subnet_id = aws_subnet.public_a.id
   associate_public_ip_address = true
   vpc_security_group_ids = [aws_security_group.bastion.id]
+  iam_instance_profile = aws_iam_instance_profile.bastion.name
   
   ami = "ami-094efa69961183fa4"
 
