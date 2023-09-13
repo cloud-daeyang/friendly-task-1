@@ -174,6 +174,7 @@ resource "aws_subnet" "private_a" {
   tags = {
     Name = "wsi-private-a"
     "karpenter.sh/discovery" = "wsi-cluster"
+    "kubernetes.io/role/internal-elb" = "1"
   }
 }
 
@@ -185,6 +186,7 @@ resource "aws_subnet" "private_b" {
   tags = {
     Name = "wsi-private-b"
     "karpenter.sh/discovery" = "wsi-cluster"
+    "kubernetes.io/role/internal-elb" = "1"
   }
 }
 
@@ -196,6 +198,7 @@ resource "aws_subnet" "private_c" {
   tags = {
     Name = "wsi-private-c"
     "karpenter.sh/discovery" = "wsi-cluster"
+    "kubernetes.io/role/internal-elb" = "1"
   }
 }
 
@@ -268,6 +271,19 @@ resource "aws_route_table_association" "protected_c" {
   route_table_id = aws_route_table.protected.id
 }
 
+resource "aws_vpc_endpoint" "eks_cluster" {
+  vpc_id = aws_vpc.main.id
+  service_name = "com.amazonaws.ap-northeast-2.eks"
+
+  security_group_ids = [aws_security_group.bastion.id]
+
+  route_table_ids = [
+    aws_route_table.private_a.id,
+    aws_route_table.private_b.id,
+    aws_route_table.private_c.id,
+  ]
+}
+
 resource "aws_eip" "bastion" {
   
   instance = aws_instance.bastion.id
@@ -279,10 +295,10 @@ resource "aws_security_group" "alb" {
   vpc_id = aws_vpc.main.id
 
   ingress {
-    protocol = "-1"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-    from_port = "0"
-    to_port = "0"
   }
 
   egress {
@@ -298,21 +314,21 @@ resource "aws_security_group" "bastion" {
   vpc_id = aws_vpc.main.id
 
   ingress {
-    protocol = "tcp"
+    from_port   = 2220
+    to_port     = 2220
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-    from_port = "2220"
-    to_port = "2220"
   }
 
   egress {
-    from_port   = 0
+    from_port   = 80
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
-    from_port   = 0
+    from_port   = 443
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
@@ -351,7 +367,7 @@ resource "aws_instance" "bastion" {
   vpc_security_group_ids = [aws_security_group.bastion.id]
   iam_instance_profile = aws_iam_instance_profile.bastion.name
   
-  ami = "ami-094efa69961183fa4"
+  ami = "ami-0f22ac1c12807aefc"
 
   tags = {
     Name = "wsi-bastion"

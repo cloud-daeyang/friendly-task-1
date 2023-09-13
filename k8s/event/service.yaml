@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: user-svc
+  name: event-svc
   namespace: wsi
 spec:
   selector:
-    type: user
+    type: event
   ports:
     - port: 80
       targetPort: 8080

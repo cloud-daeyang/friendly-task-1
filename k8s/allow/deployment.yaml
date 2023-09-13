@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: allow-deployment
+  namespace: wsi
+spec:
+  selector:
+    matchLabels:
+      type: allow
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        type: allow
+    spec:
+      serviceAccountName: allow-sa
+      containers:
+      - name: allow-ctn
+        image: 
+        env:
+          - name: SG_GROUP_ID
+            value: 
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            cpu: 500m
+          requests:
+            cpu: 200m

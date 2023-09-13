@@ -17,15 +17,26 @@ privateCluster:
 vpc:
   subnets:
     private:
-      ap-northeast-2a:
-          id: 
-      ap-northeast-2b:
-          id: 
-      ap-northeast-2c:
-          id: 
+      private-a:
+          id: subnet-0220c3b755e1d7e9d
+      private-b:
+          id: subnet-0a09c54e4ed3af1c3
+      private-c:
+          id: subnet-04467be241636c414
 
 iam:
   withOIDC: true
+  serviceAccounts:
+  - metadata:
+      name: allow-sa
+      namespace: wsi
+    roleName: allow-app-role
+    attachPolicyARNs:
+      - arn:aws:iam::aws:policy/AdministratorAccess
+
+cloudWatch:
+  clusterLogging:
+    enableTypes: ["*"]
 
 managedNodeGroups:
   - name: wsi-ng
@@ -35,17 +46,20 @@ managedNodeGroups:
     desiredCapacity: 2
     minSize: 2
     maxSize: 20
-    tags:
-      karpenter.sh/discovery: wsi-cluster
+    subnets:
+      - private-a
+      - private-b
+      - private-c
     iam:
       withAddonPolicies:
+        albIngress: true
         imageBuilder: true
         autoScaler: true
         externalDNS: true
         certManager: true
         awsLoadBalancerController: true
         cloudWatch: true
-
-cloudWatch:
-  clusterLogging:
-    enableTypes: ["*"]
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly

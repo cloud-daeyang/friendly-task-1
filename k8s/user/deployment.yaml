@@ -2,20 +2,19 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: user-deployment
-  labels:
-    app: user
+  namespace: wsi
 spec:
   selector:
     matchLabels:
-      app: user
+      type: user
   replicas: 2
   template:
     metadata:
       labels:
-        app: user
+        type: user
     spec:
       containers:
-      - name: user-cnt
+      - name: user-ctn
         image: 
         env:
           - name: DB_WRITE_HOST
@@ -23,11 +22,17 @@ spec:
           - name: DB_READ_HOST
             value: 
           - name: DB_NAME
-            value: 
+            value: skills
           - name: DB_USER
-            value: 
+            valueFrom:
+              secretKeyRef:
+                name: user-secret
+                key: username
           - name: DB_PASSWORD
-            value: 
+            valueFrom:
+              secretKeyRef:
+                name: user-secret
+                key: password 
           - name: DB_PORT
             value: '5432'
         ports:
@@ -35,7 +40,5 @@ spec:
         resources:
           limits:
             cpu: 500m
-            memory: 128Mi
           requests:
             cpu: 200m
-            memory: 64Mi

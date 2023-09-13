@@ -8,7 +8,6 @@ AWS.config.update({
 
 const ec2 = new AWS.EC2();
 
-// Define a route for /allowlist
 app.get('/allowlist', async (req, res) => {
     const ipAddress = req.query.ip;
     const securityGroupId = 'SG_GROUP_ID';
@@ -47,6 +46,10 @@ app.get('/allowlist', async (req, res) => {
         console.error('Error:', error);
         res.status(500).send('Error adding IP address to allowlist.');
     }
+});
+
+app.get('/healthz', (req, res) => {
+    res.status(200).send('healthy');
 });
 
 const port = process.env.PORT || 8080;

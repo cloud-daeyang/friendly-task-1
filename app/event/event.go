@@ -26,7 +26,12 @@ func eventHandler(w http.ResponseWriter, r *http.Request) {
     fmt.Fprintf(w, "%s", text)
 }
 
+func health(w http.ResponseWriter, req *http.Request) {
+    fmt.Fprint(w, "healthy")
+}
+
 func main() {
+    http.HandleFunc("/healthz", health)
     http.HandleFunc("/event", eventHandler)
     http.ListenAndServe(":8080", nil)
 }

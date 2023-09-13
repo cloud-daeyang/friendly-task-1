@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: user-svc
+  name: allow-svc
   namespace: wsi
 spec:
   selector:
-    type: user
+    type: allow
   ports:
     - port: 80
       targetPort: 8080

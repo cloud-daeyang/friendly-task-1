@@ -1,10 +1,12 @@
 {
-	"Version": "2012-10-17",
-	"Statement": {
-		"Effect": "Allow",
-		"Action": "sts:AssumeRole",
-		"Principal": {
-			"AWS": "arn:aws:iam::635867519280:root"
-		}
-	}
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::635867519280:user/admin01"
+            },
+            "Action": "sts:AssumeRole"
+        }
+    ]
 }
