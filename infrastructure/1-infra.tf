@@ -39,6 +39,8 @@ resource "aws_subnet" "public_a" {
 
   tags = {
     Name = "wsi-public-a"
+    "kubernetes.io/cluster/wsi-cluster" = "shared"
+    "kubernetes.io/role/elb" = "1"
   }
 }
 
@@ -50,6 +52,8 @@ resource "aws_subnet" "public_b" {
 
   tags = {
     Name = "wsi-public-b"
+    "kubernetes.io/cluster/wsi-cluster" = "shared"
+    "kubernetes.io/role/elb" = "1"
   }
 }
 
@@ -61,6 +65,8 @@ resource "aws_subnet" "public_c" {
 
   tags = {
     Name = "wsi-public-c"
+    "kubernetes.io/cluster/wsi-cluster" = "shared"
+    "kubernetes.io/role/elb" = "1"
   }
 }
 
@@ -174,6 +180,7 @@ resource "aws_subnet" "private_a" {
   tags = {
     Name = "wsi-private-a"
     "karpenter.sh/discovery" = "wsi-cluster"
+    "kubernetes.io/cluster/wsi-cluster" = "shared"
     "kubernetes.io/role/internal-elb" = "1"
   }
 }
@@ -186,6 +193,7 @@ resource "aws_subnet" "private_b" {
   tags = {
     Name = "wsi-private-b"
     "karpenter.sh/discovery" = "wsi-cluster"
+    "kubernetes.io/cluster/wsi-cluster" = "shared"
     "kubernetes.io/role/internal-elb" = "1"
   }
 }
@@ -198,6 +206,7 @@ resource "aws_subnet" "private_c" {
   tags = {
     Name = "wsi-private-c"
     "karpenter.sh/discovery" = "wsi-cluster"
+    "kubernetes.io/cluster/wsi-cluster" = "shared"
     "kubernetes.io/role/internal-elb" = "1"
   }
 }
@@ -271,19 +280,6 @@ resource "aws_route_table_association" "protected_c" {
   route_table_id = aws_route_table.protected.id
 }
 
-resource "aws_vpc_endpoint" "eks_cluster" {
-  vpc_id = aws_vpc.main.id
-  service_name = "com.amazonaws.ap-northeast-2.eks"
-
-  security_group_ids = [aws_security_group.bastion.id]
-
-  route_table_ids = [
-    aws_route_table.private_a.id,
-    aws_route_table.private_b.id,
-    aws_route_table.private_c.id,
-  ]
-}
-
 resource "aws_eip" "bastion" {
   
   instance = aws_instance.bastion.id
@@ -335,6 +331,57 @@ resource "aws_security_group" "bastion" {
   }
 }
 
+resource "aws_flow_log" "vpc_flow_logs" {
+  iam_role_arn         = aws_iam_role.vpc_flow_logs_role.arn
+  log_destination    = aws_cloudwatch_log_group.vpc_flow_logs.arn
+  traffic_type = "ALL"
+  vpc_id  = aws_vpc.main.id
+}
+
+resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
+  name = "/vpc/flow/logs"
+}
+
+data "aws_iam_policy_document" "vpc_flow_assume_role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["vpc-flow-logs.amazonaws.com"]
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
+}
+
+resource "aws_iam_role" "vpc_flow_logs_role" {
+  name               = "vpc-flow-logs-role"
+  assume_role_policy = data.aws_iam_policy_document.vpc_flow_assume_role.json
+}
+
+data "aws_iam_policy_document" "vpc_flow_logs_policy_document" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+      "logs:DescribeLogGroups",
+      "logs:DescribeLogStreams",
+    ]
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "vpc_flow_logs_policy" {
+  name   = "vpc-flow-logs-policy"
+  role   = aws_iam_role.vpc_flow_logs_role.id
+  policy = data.aws_iam_policy_document.vpc_flow_logs_policy_document.json
+}
+
 resource "aws_iam_role" "bastion" {
   name = "skills-role-bastion"
   
@@ -367,7 +414,7 @@ resource "aws_instance" "bastion" {
   vpc_security_group_ids = [aws_security_group.bastion.id]
   iam_instance_profile = aws_iam_instance_profile.bastion.name
   
-  ami = "ami-0f22ac1c12807aefc"
+  ami = "ami-091aca13f89c7964e"
 
   tags = {
     Name = "wsi-bastion"

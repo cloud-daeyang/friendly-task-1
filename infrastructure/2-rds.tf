@@ -42,7 +42,14 @@ resource "aws_rds_cluster" "db" {
   engine_version              = "14.6"
 }
 
-resource "aws_rds_cluster_instance" "db" {
+resource "aws_rds_cluster_instance" "read_db" {
+  cluster_identifier = aws_rds_cluster.db.id
+  instance_class    = "db.t3.medium"
+  identifier        = "wsi-db-read-instance"
+  engine            = "aurora-postgresql"
+}
+
+resource "aws_rds_cluster_instance" "write_db" {
   cluster_identifier = aws_rds_cluster.db.id
   instance_class    = "db.t3.medium"
   identifier        = "wsi-db-instance"

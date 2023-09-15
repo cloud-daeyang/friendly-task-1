@@ -31,9 +31,19 @@ eksctl create iamidentitymapping \
 
 aws iam create-service-linked-role --aws-service-name spot.amazonaws.com || true
 
-helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter --version ${KARPENTER_VERSION} --namespace karpenter --create-namespace \
+helm registry logout public.ecr.aws
+
+helm upgrade --install --namespace karpenter --create-namespace \
+  karpenter oci://public.ecr.aws/karpenter/karpenter \
+  --version ${KARPENTER_VERSION}\
   --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=${KARPENTER_IAM_ROLE_ARN} \
-  --set clusterName=${CLUSTER_NAME} \
-  --set clusterEndpoint=${CLUSTER_ENDPOINT} \
-  --set aws.defaultInstanceProfile=KarpenterNodeInstanceProfile-${CLUSTER_NAME} \
+  --set settings.aws.clusterName=${CLUSTER_NAME} \
+  --set settings.aws.clusterEndpoint=${CLUSTER_ENDPOINT} \
+  --set settings.aws.defaultInstanceProfile=KarpenterNodeInstanceProfile-${CLUSTER_NAME} \
+  --set settings.aws.interruptionQueueName=${CLUSTER_NAME} \
+  --set controller.resources.requests.cpu=1 \
+  --set controller.resources.requests.memory=1Gi \
+  --set controller.resources.limits.cpu=1 \
+  --set controller.resources.limits.memory=1Gi \
+  --set nodeSelector.intent=control-apps \
   --wait

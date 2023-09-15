@@ -24,6 +24,6 @@ sleep 30
 sed -i.bak -e 's|your-cluster-name|wsi-cluster|' ./controller.yaml
 
 kubectl apply -f controller.yaml
-kubectl apply -f ingress.yaml
+kubectl apply -f ingclass.yaml
 
 kubectl get deployment -n kube-system aws-load-balancer-controller
