@@ -2,24 +2,26 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   namespace: wsi
-  name: read-role
+  name: read-rbac
 rules:
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get", "list"]
-
+- apiGroups:
+    - ""
+  resources:
+    - pods
+  verbs:
+    - get
+    - list
 ---
-
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   namespace: wsi
-  name: read-role-binding
+  name: read-rolebinding
 subjects:
-- kind: User
-  name: read01
-  apiGroup: rbac.authorization.k8s.io
+- kind: ServiceAccount
+  name: read-sa
+  namespace: wsi
 roleRef:
   kind: Role
-  name: read
+  name: read-rbac
   apiGroup: rbac.authorization.k8s.io

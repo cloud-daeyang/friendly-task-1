@@ -16,17 +16,10 @@ spec:
   limits:
     resources:
       cpu: 1000
-  providerRef:
-    name: default
-  consolidation:
-    enabled: true
----
-apiVersion: karpenter.k8s.aws/v1alpha1
-kind: AWSNodeTemplate
-metadata:
-  name: default
-spec:
-  subnetSelector:
-    karpenter.sh/discovery: wsi-cluster
-  securityGroupSelector:
-    karpenter.sh/discovery: wsi-cluster
+  provider:
+    instanceProfile: eksctl-KarpenterNodeInstanceProfile-wsi-cluster
+    subnetSelector:
+      karpenter.sh/discovery: wsi-cluster
+    securityGroupSelector:
+      karpenter.sh/discovery: wsi-cluster
+  ttlSecondsAfterEmpty: 30

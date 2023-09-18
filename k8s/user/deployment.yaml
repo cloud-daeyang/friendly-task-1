@@ -15,14 +15,14 @@ spec:
     spec:
       containers:
       - name: user-ctn
-        image: 
+        image: 635867519280.dkr.ecr.ap-northeast-2.amazonaws.com/wsi-ecr:user
         env:
           - name: DB_WRITE_HOST
-            value: 
+            value: wsi-db.cluster-c44tvborxnu4.ap-northeast-2.rds.amazonaws.com
           - name: DB_READ_HOST
-            value: 
+            value: wsi-db.cluster-ro-c44tvborxnu4.ap-northeast-2.rds.amazonaws.com
           - name: DB_NAME
-            value: skills
+            value: dev
           - name: DB_USER
             valueFrom:
               secretKeyRef:
@@ -39,6 +39,6 @@ spec:
         - containerPort: 8080
         resources:
           limits:
-            cpu: 500m
+            cpu: "500m"
           requests:
-            cpu: 200m
+            cpu: "250m"

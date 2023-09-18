@@ -2,24 +2,27 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   namespace: wsi
-  name: admin-role
+  name: admin-rbac
 rules:
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get", "list", "delete"]
-
+- apiGroups:
+    - ""
+  resources:
+    - pods
+  verbs:
+    - get
+    - list
+    - delete
 ---
-
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   namespace: wsi
-  name: admin-role-binding
+  name: admin-rolebinding
 subjects:
-- kind: User
-  name: admin01
-  apiGroup: rbac.authorization.k8s.io
+- kind: ServiceAccount
+  name: admin-sa
+  namespace: wsi
 roleRef:
   kind: Role
-  name: admin
+  name: admin-rbac
   apiGroup: rbac.authorization.k8s.io

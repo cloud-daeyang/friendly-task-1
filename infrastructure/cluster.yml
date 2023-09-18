@@ -1,0 +1,72 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: wsi-cluster
+  region: ap-northeast-2
+  version: "1.27"
+  tags:
+    karpenter.sh/discovery: wsi-cluster
+
+cloudWatch:
+  clusterLogging:
+    enableTypes: ["*"]
+
+iam:
+  withOIDC: true
+  serviceAccounts:
+  - metadata:
+      name: aws-load-balancer-controller
+      namespace: kube-system
+    wellKnownPolicies:
+      awsLoadBalancerController: true
+
+vpc:
+  id: vpc-0052f2ac18c0f2c03
+  subnets:
+    private:
+      ap-northeast-2a-priv: { id: subnet-08055fe6bf101ba82 }
+      ap-northeast-2b-priv: { id: subnet-05a368bdd23a165ca }
+      ap-northeast-2c-priv: { id: subnet-0bf9b5aa07a5b3c92 }
+
+iamIdentityMappings:
+  - arn: arn:aws:iam::635867519280:role/admin
+    username: admin
+    groups:
+      - admin-rbac
+  - arn: arn:aws:iam::635867519280:role/read
+    username: read
+    groups:
+      - read-rbac
+
+karpenter:
+  version: 'v0.30.0'
+  createServiceAccount: true
+
+addons:
+- name: coredns
+  version: latest
+- name: kube-proxy
+  version: latest
+- name: vpc-cni
+  attachPolicyARNs:
+    - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+
+managedNodeGroups:
+  - name: wsi-node-group
+    instanceName: wsi-group
+    instanceType: m5.large
+    amiFamily: AmazonLinux2
+    minSize: 2
+    maxSize: 20
+    desiredCapacity: 2
+    privateNetworking: true
+    subnets:
+     - ap-northeast-2a-priv
+     - ap-northeast-2b-priv
+     - ap-northeast-2c-priv
+    iam:
+      withAddonPolicies:
+        imageBuilder: true
+        autoScaler: true
+        awsLoadBalancerController: true
+        cloudWatch: true

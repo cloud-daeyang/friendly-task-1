@@ -4,8 +4,7 @@
         {
             "Effect": "Allow",
             "Action": [
-                "eks:Describe*",
-                "eks:List*"
+                "eks:*"
             ],
             "Resource": "*"
         }

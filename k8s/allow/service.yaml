@@ -7,7 +7,7 @@ spec:
   selector:
     type: allow
   ports:
-    - port: 80
-      targetPort: 8080
-      protocol: TCP
-    type: NodePort
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+  type: NodePort

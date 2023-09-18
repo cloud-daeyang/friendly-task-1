@@ -4,7 +4,10 @@
         {
             "Effect": "Allow",
             "Principal": {
-                "AWS": "arn:aws:iam::635867519280:user/read01"
+                "Service": "eks.amazonaws.com",
+                "AWS": [
+                    "arn:aws:iam::635867519280:role/read"
+                ]
             },
             "Action": "sts:AssumeRole"
         }
