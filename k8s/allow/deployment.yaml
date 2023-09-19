@@ -17,9 +17,6 @@ spec:
       containers:
       - name: allow-ctn
         image: 635867519280.dkr.ecr.ap-northeast-2.amazonaws.com/wsi-ecr:allow
-        env:
-          - name: SG_GROUP_ID
-            value: sg-058344e8436c86b5d
         ports:
         - containerPort: 8080
         resources:

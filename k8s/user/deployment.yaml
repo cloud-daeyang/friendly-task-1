@@ -16,6 +16,7 @@ spec:
       containers:
       - name: user-ctn
         image: 635867519280.dkr.ecr.ap-northeast-2.amazonaws.com/wsi-ecr:user
+        imagePullPolicy: Always
         env:
           - name: DB_WRITE_HOST
             value: wsi-db.cluster-c44tvborxnu4.ap-northeast-2.rds.amazonaws.com
@@ -24,15 +25,9 @@ spec:
           - name: DB_NAME
             value: dev
           - name: DB_USER
-            valueFrom:
-              secretKeyRef:
-                name: user-secret
-                key: username
+            value: skills
           - name: DB_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: user-secret
-                key: password 
+            value: Skills2024**
           - name: DB_PORT
             value: '5432'
         ports:
