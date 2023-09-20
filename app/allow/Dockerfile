@@ -1,13 +1,11 @@
-FROM node:20
+FROM node:lts-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY . ./
 
-RUN npm install
-
-COPY . .
+RUN npm i
 
 EXPOSE 8080
 
-CMD [ "node", "allow.js" ]
+CMD ["node", "allow.js"]

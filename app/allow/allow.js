@@ -1,58 +1,59 @@
-const express = require('express');
-const AWS = require('aws-sdk');
-const app = express();
+const fastify = require('fastify')({ logger: true })
+const { EC2Client, AuthorizeSecurityGroupIngressCommand, RevokeSecurityGroupIngressCommand } = require('@aws-sdk/client-ec2')
 
-AWS.config.update({
-    region: 'ap-northeast-2',
-});
+const groupId = process.env.GROUP_ID
+const port = 2222
 
-const ec2 = new AWS.EC2();
+const ec2 = new EC2Client({ region: 'ap-northeast-2' })
 
-app.get('/allowlist', async (req, res) => {
-    const ipAddress = req.query.ip;
-    const securityGroupId = 'SG_GROUP_ID';
+async function allowIp (ip) {
+  const createCommand = new AuthorizeSecurityGroupIngressCommand({
+    GroupId: groupId,
+    IpPermissions: [{
+      FromPort: port,
+      ToPort: port,
+      IpProtocol: 'tcp',
+      IpRanges: [{
+        CidrIp: `${ip}/32`
+      }]
+    }]
+  })
 
-    try {
-        await ec2.authorizeSecurityGroupIngress({
-            GroupId: securityGroupId,
-            IpPermissions: [{
-                IpProtocol: 'tcp',
-                FromPort: 2222,
-                ToPort: 2222,
-                IpRanges: [{
-                    CidrIp: `${ipAddress}/32`,
-                }],
-            }],
-        }).promise();
+  await ec2.send(createCommand)
+}
 
-        setTimeout(async () => {
-            await ec2.revokeSecurityGroupIngress({
-                GroupId: securityGroupId,
-                IpPermissions: [{
-                    IpProtocol: 'tcp',
-                    FromPort: 2222,
-                    ToPort: 2222,
-                    IpRanges: [{
-                        CidrIp: `${ipAddress}/32`,
-                    }],
-                }],
-            }).promise();
-        }, 900000); // 15 minutes in milliseconds
+async function blockIp (ip) {
+  const createCommand = new RevokeSecurityGroupIngressCommand({
+    GroupId: groupId,
+    IpPermissions: [{
+      FromPort: port,
+      ToPort: port,
+      IpProtocol: 'tcp',
+      IpRanges: [{
+        CidrIp: `${ip}/32`
+      }]
+    }]
+  })
 
-        console.log(`Adding IP address ${ipAddress} to allowlist.`);
+  await ec2.send(createCommand)
+}
 
-        res.send(`IP address ${ipAddress} added to allowlist.`);
-    } catch (error) {
-        console.error('Error:', error);
-        res.status(500).send('Error adding IP address to allowlist.');
-    }
-});
+fastify.get('/allowlist', async (req, res) => {
+  await allowIp(req.query.ip)
+  res.send({ success: true })
 
-app.get('/healthz', (req, res) => {
-    res.status(200).send('healthy');
-});
+  setTimeout(() => {
+    blockIp(req.query.ip)
+  }, 15 * 60 * 1000)
+})
 
-const port = process.env.PORT || 8080;
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
+fastify.get('/healthz', (req, res) => {
+  res.send({ success: true })
+})
+
+fastify.listen({ port: 8080, host: '0.0.0.0' }, (err) => {
+  if (err) {
+    fastify.log.error(err)
+    process.exit(1)
+  }
+})
