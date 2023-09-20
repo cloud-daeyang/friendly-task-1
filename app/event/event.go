@@ -8,7 +8,7 @@ import (
 
 func eventHandler(w http.ResponseWriter, r *http.Request) {
 
-    response, err := http.Get("https://raw.githubusercontent.com/cloud-daeyang/promotion_code.txt")
+    response, err := http.Get("https://raw.githubusercontent.com/cloud-daeyang/blob/main/promotion_code.txt")
     if err != nil {
         http.Error(w, "Failed to fetch data", http.StatusInternalServerError)
         return
