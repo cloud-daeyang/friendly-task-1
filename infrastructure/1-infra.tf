@@ -40,7 +40,6 @@ resource "aws_subnet" "public_a" {
 
   tags = {
     Name = "wsi-public-a"
-    "kubernetes.io/cluster/wsi-cluster" = "shared"
     "kubernetes.io/role/elb" = "1"
   }
 }
@@ -53,7 +52,6 @@ resource "aws_subnet" "public_b" {
 
   tags = {
     Name = "wsi-public-b"
-    "kubernetes.io/cluster/wsi-cluster" = "shared"
     "kubernetes.io/role/elb" = "1"
   }
 }
@@ -66,7 +64,6 @@ resource "aws_subnet" "public_c" {
 
   tags = {
     Name = "wsi-public-c"
-    "kubernetes.io/cluster/wsi-cluster" = "shared"
     "kubernetes.io/role/elb" = "1"
   }
 }
@@ -136,6 +133,8 @@ resource "aws_route_table" "private_a" {
 
   tags = {
     Name = "wsi-private-a-rt"
+    "kubernetes.io/cluster/wsi-cluster" = "owned"
+    "kubernetes.io/role/internal-elb" = "1"
   }
 }
 
@@ -144,6 +143,8 @@ resource "aws_route_table" "private_b" {
 
   tags = {
     Name = "wsi-private-b-rt"
+    "kubernetes.io/cluster/wsi-cluster" = "owned"
+    "kubernetes.io/role/internal-elb" = "1"
   }
 }
 
@@ -152,6 +153,8 @@ resource "aws_route_table" "private_c" {
 
   tags = {
     Name = "wsi-private-c-rt"
+    "kubernetes.io/cluster/wsi-cluster" = "owned"
+    "kubernetes.io/role/internal-elb" = "1"
   }
 }
 

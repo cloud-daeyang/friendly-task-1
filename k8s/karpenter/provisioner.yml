@@ -19,7 +19,7 @@ spec:
   provider:
     instanceProfile: eksctl-KarpenterNodeInstanceProfile-wsi-cluster
     subnetSelector:
-      karpenter.sh/discovery: wsi-cluster
+      kubernetes.io/cluster/wsi-cluster: owned
     securityGroupSelector:
-      karpenter.sh/discovery: wsi-cluster
+      kubernetes.io/cluster/wsi-cluster: owned
   ttlSecondsAfterEmpty: 30
